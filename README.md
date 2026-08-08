@@ -1,45 +1,88 @@
-# EpinelPS
-
----
+# EpinelPS — Personal Local Server Lab
 
 <div align="center">
 
-[![GitHub issues](https://img.shields.io/github/issues/MishaProductions/nikke-server?style=flat-square)](https://github.com/MishaProductions/nikke-server/issues)
-[![GitHub pr](https://img.shields.io/github/issues-pr/MishaProductions/nikke-server?style=flat-square)](https://github.com/MishaProductions/nikke-server/pulls)
-[![GitHub](https://img.shields.io/github/license/MishaProductions/nikke-server?style=flat-square)](https://github.com/MishaProductions/nikke-server/blob/main/LICENSE)
-![GitHub release (with filter)](https://img.shields.io/github/downloads-pre/MishaProductions/nikke-server/latest/total?style=flat-square)
-![GitHub Repo stars](https://img.shields.io/github/stars/MishaProductions/nikke-server?style=flat-square)
-[![Discord](https://img.shields.io/discord/1261717212448952450?style=flat-square)](https://discord.gg/Ztt6Y9vQjF)
+![Personal fork](https://img.shields.io/badge/personal%20fork-custom%20build-7c3aed?style=flat-square)
+[![Upstream](https://img.shields.io/badge/upstream-EpinelPS%2FEpinelPS-2563eb?style=flat-square)](https://github.com/EpinelPS/EpinelPS)
+[![License: AGPL-3.0](https://img.shields.io/badge/license-AGPL--3.0-green?style=flat-square)](LICENSE)
+[![中文说明](https://img.shields.io/badge/README-%E4%B8%AD%E6%96%87-red?style=flat-square)](README.zh-CN.md)
+
+**A private/local server playground for a 2D anime RPG game.**
+
+Small fixes, safer defaults, and a little more personality for a self-hosted setup.
 
 </div>
-Private/local server for a 2d anime rpg game. The goal of this project is to replicate the functionality of the official server.
 
-Discord server: https://discord.gg/Ztt6Y9vQjF
+---
 
-For running the game on Linux with EpinelPS, please use https://github.com/EpinelPS/EpinelPSLauncher
+## About this fork
 
+This repository is a personal fork of [EpinelPS/EpinelPS](https://github.com/EpinelPS/EpinelPS). The upstream project aims to replicate the functionality of the official server for local/private use.
+
+This fork currently focuses on stability and quality-of-life tweaks:
+
+- Character level commands and server-side validation now support the client-safe cap of `1400`.
+- Character levels above `1400` are clamped back to `1400` on startup/reload.
+- Synchro device level responses are also capped to avoid client-side infinite loading.
+- `db.json` saving is safer: writes go through a temporary file and keep a `db.json.bak` backup.
+- If `db.json` is empty or unreadable, the server tries to recover from `db.json.bak`.
+
+> [!IMPORTANT]
+> The `1400` cap matches the currently available client static level data. Going beyond it without changing game resources can make the client hang during loading.
+
+## Official source and downloads
+
+The official upstream project is:
+
+https://github.com/EpinelPS/EpinelPS
+
+Official build download:
+
+https://nightly.link/EpinelPS/EpinelPS/workflows/dotnet-desktop/main/Server%20and%20Server%20selector.zip
+
+Linux build:
+
+https://nightly.link/EpinelPS/EpinelPS/workflows/dotnet-desktop/main/EpinelPS_linux_x64.zip
+
+For running the game on Linux with EpinelPS, use:
+
+https://github.com/EpinelPS/EpinelPSLauncher
 
 > [!CAUTION]
-> Please note this GitHub repository (https://github.com/EpinelPS/EpinelPS/) is the only official source for EpinelPS. **If you bought it from someone, you got scammed. Do not download EpinelPS from other sources.** Download link: https://nightly.link/EpinelPS/EpinelPS/workflows/dotnet-desktop/main/Server%20and%20Server%20selector.zip 
-[Download link (Linux)](https://nightly.link/EpinelPS/EpinelPS/workflows/dotnet-desktop/main/EpinelPS_linux_x64.zip)
+> EpinelPS is free/open-source software. If someone sold it to you, you were likely scammed. Prefer the official upstream source and builds unless you intentionally use a personal fork like this one.
 
 ## Usage
-Download the [GitHub actions build](https://nightly.link/EpinelPS/EpinelPS/workflows/dotnet-desktop/main/Server%20and%20Server%20selector.zip), and run ServerSelector.Desktop.exe as administrator (to modify DNS hosts file and install a CA cert). Make sure to close the game and launcher first. Select Local server, and then click save. After that, start EpinelPS.exe to start the actual server.
-<br>
-<img src="https://github.com/MishaProductions/nikke-server/assets/106913236/b01194ef-aec5-4de9-b982-1253757655f8" width="192" height="108">
-<br>
-You should be able to register an new account in the launcher (you can enter any email verification code).
 
+1. Download the official GitHub Actions build from the upstream project.
+2. Run `ServerSelector.Desktop.exe` as administrator.
+   - This is needed to update the hosts file and install the CA certificate.
+3. Close the game and launcher first.
+4. Select `Local server`, then save.
+5. Start `EpinelPS.exe` to run the actual server.
+6. Register a new account in the launcher. Any email verification code should work.
 
-To access the admin panel, go to https://127.0.0.1/admin/ and sign in. You can skip stages and add all characters using that link for example. The first created user account is an admin account.
+Admin panel:
 
+https://127.0.0.1/admin/
 
+The first created account becomes the admin account.
 
-The server automatically searches the corresponding `Unity/.../saus/saus/lss` directory. Without this path, IDs still work, but localized names cannot be resolved.
+> [!NOTE]
+> Before updating the game, switch back to the official server so the game can patch normally.
 
+## Local data notes
 
-> [!Note]
-> Before updating the game, make sure to switch back to the official server to ensure that the game is properly patched.
+The server automatically searches the corresponding `Unity/.../saus/saus/lss` directory. Without this path, IDs can still work, but localized names may not resolve.
+
+For this fork, avoid manually setting character or synchro levels above `1400`. The server will clamp them back down because higher values are not supported by the current client static data.
 
 ## What is implemented or missing?
-See the todo list at https://github.com/orgs/EpinelPS/projects/1 and https://github.com/EpinelPS/EpinelPS/issues
+
+See the upstream todo/project board and issues:
+
+- https://github.com/orgs/EpinelPS/projects/1
+- https://github.com/EpinelPS/EpinelPS/issues
+
+## License
+
+This project follows the upstream license: [AGPL-3.0](LICENSE).
