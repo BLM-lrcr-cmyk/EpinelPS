@@ -419,21 +419,21 @@ public class User
         {
             if (item.CharacterSerialNumber == csn)
             {
-                return GetSynchroLevel();
+                return Math.Min(GetSynchroLevel(), GameLimits.ClientCharacterLevelCap);
             }
         }
-        return characterLevel;
+        return Math.Min(characterLevel, GameLimits.ClientCharacterLevelCap);
     }
     internal int GetSynchroLevel()
     {
         if (SynchroDeviceUpgraded)
-            return SynchroDeviceLevel;
+            return Math.Min(SynchroDeviceLevel, GameLimits.ClientCharacterLevelCap);
         var highestLevelCharacters = Characters.OrderByDescending(x => x.Level).Take(5).ToList();
 
 
         if (highestLevelCharacters.Count > 0)
         {
-            return highestLevelCharacters.Last().Level;
+            return Math.Min(highestLevelCharacters.Last().Level, GameLimits.ClientCharacterLevelCap);
         }
         else
         {

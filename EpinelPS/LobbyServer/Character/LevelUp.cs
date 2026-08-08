@@ -14,6 +14,12 @@ public class LevelUp : LobbyMessage
         ResCharacterLevelUp response = new();
         Dictionary<int, CharacterLevelRecord> data = GameData.Instance.GetCharacterLevelUpData();
 
+        if (req.Lv < GameLimits.MinCharacterLevel || req.Lv > GameLimits.MaxCharacterLevel)
+        {
+            Logging.WriteLine($"Rejected character level {req.Lv}; supported range is {GameLimits.MinCharacterLevel}-{GameLimits.MaxCharacterLevel}", LogType.WarningAntiCheat);
+            return;
+        }
+
         foreach (CharacterModel item in user.Characters.ToArray())
         {
             if (item.Csn == req.Csn)

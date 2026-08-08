@@ -8,6 +8,8 @@ namespace EpinelPS.Database;
 internal class JsonDb
 {
     public static CoreInfo Instance { get; internal set; }
+    private static readonly object SaveLock = new();
+    private static string DatabasePath => Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "db.json");
 
     // Note: change this in sodium
     public static byte[] ServerPrivateKey = Convert.FromBase64String("FSUY8Ohd942n5LWAfxn6slK3YGwc8OqmyJoJup9nNos=");
@@ -22,17 +24,7 @@ internal class JsonDb
             Save();
         }       
        
-
-        var text = File.ReadAllText(AppDomain.CurrentDomain.BaseDirectory + "/db.json");
-        if (text.Contains("Char_Premium_Ticket"))
-        {
-            text = text.Replace("Char_Premium_Ticket", "CharPremiumTicket");
-            text = text.Replace("Char_Customize_Ticket", "CharCustomizeTicket");
-            text = text.Replace("Char_Select_01_Ticket", "CharSelect01Ticket");
-            text = text.Replace("Char_Select_02_Ticket", "CharSelect02Ticket");
-        }
-
-        var j = JsonConvert.DeserializeObject<CoreInfo>(text);
+        var j = LoadDatabase();
         if (j != null)
         {
             Instance = j;
@@ -61,11 +53,10 @@ internal class JsonDb
                 Instance.EncryptionTokenKey = pasetoKey.Key.ToArray();
             }
 
-            Save();
-
             Logging.SetOutputLevel(Instance.LogLevel);
 
             ValidateDb();
+            Save();
             Console.WriteLine("JsonDb: Loaded");
         }
         else
@@ -84,11 +75,49 @@ internal class JsonDb
             Save();
         }
 
-        var j = JsonConvert.DeserializeObject<CoreInfo>(File.ReadAllText(AppDomain.CurrentDomain.BaseDirectory + "/db.json"));
+        var j = LoadDatabase();
         if (j != null)
         {
             Instance = j;
+            ValidateDb();
+            Save();
             Console.WriteLine("Database reload complete.");
+        }
+    }
+
+    private static CoreInfo? LoadDatabase()
+    {
+        return TryLoadDatabase(DatabasePath) ?? TryLoadDatabase(DatabasePath + ".bak");
+    }
+
+    private static CoreInfo? TryLoadDatabase(string path)
+    {
+        if (!File.Exists(path))
+            return null;
+
+        var text = File.ReadAllText(path);
+        if (string.IsNullOrWhiteSpace(text))
+            return null;
+
+        if (text.Contains("Char_Premium_Ticket"))
+        {
+            text = text.Replace("Char_Premium_Ticket", "CharPremiumTicket");
+            text = text.Replace("Char_Customize_Ticket", "CharCustomizeTicket");
+            text = text.Replace("Char_Select_01_Ticket", "CharSelect01Ticket");
+            text = text.Replace("Char_Select_02_Ticket", "CharSelect02Ticket");
+        }
+
+        try
+        {
+            var db = JsonConvert.DeserializeObject<CoreInfo>(text);
+            if (path != DatabasePath && db != null)
+                Console.WriteLine($"Recovered database from {Path.GetFileName(path)}");
+            return db;
+        }
+        catch (Exception)
+        {
+            Console.WriteLine($"Failed to read {Path.GetFileName(path)}");
+            return null;
         }
     }
 
@@ -99,12 +128,21 @@ internal class JsonDb
         {
             foreach (var c in user.Characters)
             {
-                if (c.Level > 1000)
+                if (c.Level < Utils.GameLimits.MinCharacterLevel)
                 {
-                    Console.WriteLine($"Warning: Character level for character {c.Tid} cannot be above 1000, setting to 1000");
-                    c.Level = 1000;
+                    c.Level = Utils.GameLimits.MinCharacterLevel;
+                }
+                if (c.Level > Utils.GameLimits.MaxCharacterLevel)
+                {
+                    Console.WriteLine($"Warning: Character level for character {c.Tid} cannot be above {Utils.GameLimits.MaxCharacterLevel}, setting to {Utils.GameLimits.MaxCharacterLevel}");
+                    c.Level = Utils.GameLimits.MaxCharacterLevel;
                 }
             }
+
+            if (user.SynchroDeviceLevel < Utils.GameLimits.SynchroDeviceBaseLevel)
+                user.SynchroDeviceLevel = Utils.GameLimits.SynchroDeviceBaseLevel;
+            else if (user.SynchroDeviceLevel > Utils.GameLimits.MaxCharacterLevel)
+                user.SynchroDeviceLevel = Utils.GameLimits.MaxCharacterLevel;
         }
     }
 
@@ -120,9 +158,33 @@ internal class JsonDb
 
     public static void Save()
     {
-        if (Instance != null)
+        if (Instance == null)
+            return;
+
+        lock (SaveLock)
         {
-            File.WriteAllText(AppDomain.CurrentDomain.BaseDirectory + "/db.json", JsonConvert.SerializeObject(Instance, Formatting.Indented));
+            string json = JsonConvert.SerializeObject(Instance, Formatting.Indented);
+            string tempPath = DatabasePath + ".tmp";
+            string backupPath = DatabasePath + ".bak";
+
+            // Write and flush a complete file before replacing db.json. This prevents
+            // a crash or power loss during a save from leaving an empty database.
+            using (FileStream stream = new(tempPath, FileMode.Create, FileAccess.Write, FileShare.None))
+            using (StreamWriter writer = new(stream, new System.Text.UTF8Encoding(false)))
+            {
+                writer.Write(json);
+                writer.Flush();
+                stream.Flush(true);
+            }
+
+            if (File.Exists(DatabasePath))
+            {
+                File.Replace(tempPath, DatabasePath, backupPath, ignoreMetadataErrors: true);
+            }
+            else
+            {
+                File.Move(tempPath, DatabasePath);
+            }
         }
     }
     public static int CurrentJukeboxBgm(int position)

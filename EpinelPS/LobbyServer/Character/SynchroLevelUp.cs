@@ -1,6 +1,8 @@
 ﻿using EpinelPS.Data;
 using EpinelPS.Database;
 
+using EpinelPS.Utils;
+
 namespace EpinelPS.LobbyServer.Character;
 
 [GameRequest("/character/SynchroDevice/LevelUp")]
@@ -14,6 +16,8 @@ public class SynchroLevelUp : LobbyMessage
         ResSynchroLevelUp response = new();
         Dictionary<int, CharacterLevelRecord> data = GameData.Instance.GetCharacterLevelUpData();
 
+        if (user.SynchroDeviceLevel >= GameLimits.MaxCharacterLevel)
+            return;
 
         int requiredCredit = 0;
         int requiredBattleData = 0;
@@ -44,7 +48,7 @@ public class SynchroLevelUp : LobbyMessage
         {
             response.Currencies.Add(new NetUserCurrencyData() { Type = (int)currency.Key, Value = currency.Value });
         }
-        response.SynchroLv = user.SynchroDeviceLevel;
+        response.SynchroLv = Math.Min(user.SynchroDeviceLevel, GameLimits.ClientCharacterLevelCap);
 
         user.AddTrigger(Trigger.CharacterLevelUpCount, 1);
 

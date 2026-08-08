@@ -1,6 +1,8 @@
 using EpinelPS.Data;
 using EpinelPS.Database;
 
+using EpinelPS.Utils;
+
 namespace EpinelPS.LobbyServer.Character;
 
 [GameRequest("/character/synchrodevice/deviceoneclick")]
@@ -12,7 +14,7 @@ public class SynchroDeviceOneClick : LobbyMessage
         User user = GetUser();
         ResSynchroDeviceOneClick response = new();
 
-        int targetLv = req.SynchroLv;
+        int targetLv = Math.Clamp(req.SynchroLv, GameLimits.MinCharacterLevel, GameLimits.MaxCharacterLevel);
         if (targetLv > user.SynchroDeviceLevel)
         {
             var levelData = GameData.Instance.GetCharacterLevelUpData();
@@ -47,7 +49,7 @@ public class SynchroDeviceOneClick : LobbyMessage
             }
         }
 
-        response.SynchroLv = user.SynchroDeviceLevel;
+        response.SynchroLv = Math.Min(user.SynchroDeviceLevel, GameLimits.ClientCharacterLevelCap);
         foreach (var c in user.Currency)
             response.Currencies.Add(new NetUserCurrencyData() { Type = (int)c.Key, Value = c.Value });
 

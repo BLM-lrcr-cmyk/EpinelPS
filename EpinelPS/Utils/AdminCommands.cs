@@ -520,7 +520,8 @@ public class AdminCommands
 
     public static RunCmdResponse SetCharacterLevel(User user, int level)
     {
-        if (level > 999 || level <= 0) return new RunCmdResponse() { error = "level must be between 1-999" };
+        if (level < GameLimits.MinCharacterLevel || level > GameLimits.MaxCharacterLevel)
+            return new RunCmdResponse() { error = $"level must be between {GameLimits.MinCharacterLevel}-{GameLimits.MaxCharacterLevel}" };
         foreach (CharacterModel character in user.Characters)
         {
             character.Level = level;

@@ -14,7 +14,9 @@ public class SynchroOneClick : LobbyMessage
         User user = GetUser();
         ResSynchroOneClick response = new();
         Dictionary<int, CharacterLevelRecord> data = GameData.Instance.GetCharacterLevelUpData();
-        int maxLv = data.Keys.Count > 0 ? data.Keys.Max() : 0;
+        int maxLv = data.Keys.Count > 0
+            ? Math.Min(data.Keys.Max(), GameLimits.MaxCharacterLevel)
+            : 0;
 
         foreach (NetSynchroCharacter sc in req.Chars)
         {
