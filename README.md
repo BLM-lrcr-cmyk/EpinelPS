@@ -24,6 +24,7 @@ This fork currently focuses on stability and quality-of-life tweaks:
 - Character level commands and server-side validation now support the client-safe cap of `1400`.
 - Character levels above `1400` are clamped back to `1400` on startup/reload.
 - Synchro device level responses are also capped to avoid client-side infinite loading.
+- Overload equipment option rolls are biased toward offensive stats such as attack, damage, crit, charge, ammo, reload, and hit-related options.
 - `db.json` saving is safer: writes go through a temporary file and keep a `db.json.bak` backup.
 - If `db.json` is empty or unreadable, the server tries to recover from `db.json.bak`.
 
