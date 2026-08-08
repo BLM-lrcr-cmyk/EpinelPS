@@ -298,7 +298,9 @@ public class AwakeningEquipment : LobbyMessage
 
                 double dynamicProbability = baseProbability / probabilityDenominator;
 
-                double selectionWeight = dynamicProbability * 1000000;
+                double selectionWeight = EquipmentUtils.ApplyOffensiveEffectGroupWeight(
+                    firstOption,
+                    dynamicProbability * 1000000);
 
                 weightedEffectGroups.Add(new EffectGroupWithWeight
                 {

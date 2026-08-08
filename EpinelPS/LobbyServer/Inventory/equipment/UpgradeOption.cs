@@ -232,34 +232,28 @@ public class UpgradeOption : LobbyMessage
         if (options == null || options.Count == 0)
             throw new InvalidOperationException("No options available in group - this indicates a data consistency issue");
 
-        long totalRatio = options.Sum(x => (long)x.OptionRatio);
+        long totalRatio = options.Sum(EquipmentUtils.GetWeightedOptionRatio);
 
         long randomValue = _random.NextInt64(0, totalRatio);
         long cumulativeRatio = 0;
 
         foreach (EquipmentOptionRecord option in options)
         {
-            cumulativeRatio += option.OptionRatio;
+            cumulativeRatio += EquipmentUtils.GetWeightedOptionRatio(option);
             if (randomValue < cumulativeRatio)
             {
-                // Randomly select from the StateEffectList
-                if (option.StateEffectList == null || option.StateEffectList.Count == 0)
-                {
-                    throw new InvalidOperationException($"StateEffectList is null or empty for option {option.Id}");
-                }
-                int randomIndex = _random.Next(option.StateEffectList.Count);
-                return option.StateEffectList[randomIndex].StateEffectId;
+                return EquipmentUtils.SelectStateEffectId(option, _random);
             }
         }
 
         // Fallback: randomly select from the StateEffectList of the last option
         EquipmentOptionRecord? lastOption = options.Last();
-        if (lastOption?.StateEffectList == null || lastOption.StateEffectList.Count == 0)
+        if (lastOption == null)
         {
-            throw new InvalidOperationException($"StateEffectList is null or empty for fallback option {lastOption?.Id}");
+            throw new InvalidOperationException("Fallback option is null");
         }
-        int fallbackIndex = _random.Next(lastOption.StateEffectList.Count);
-        return lastOption.StateEffectList[fallbackIndex].StateEffectId;
+
+        return EquipmentUtils.SelectStateEffectId(lastOption, _random);
     }
 
     private int GetUpgradeCostId(int lockedOptionCount)
