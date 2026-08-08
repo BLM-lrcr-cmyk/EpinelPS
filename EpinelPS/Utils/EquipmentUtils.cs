@@ -4,8 +4,8 @@ namespace EpinelPS.Utils;
 
 public class EquipmentUtils
 {
-    private const double OffensiveEffectGroupWeightMultiplier = 5.0;
-    private const double OffensiveOptionValueWeightMultiplier = 2.0;
+    private const double OffensiveEffectGroupWeightMultiplier = 25.0;
+    private const double OffensiveOptionValueWeightMultiplier = 6.0;
 
     private static readonly string[] OffensiveOptionKeywords =
     [
@@ -125,6 +125,7 @@ public class EquipmentUtils
     private static long GetStateEffectLevelWeight(StateEffectList stateEffect)
     {
         int level = Math.Max(1, stateEffect.StateEffectLevel);
-        return (long)level * level;
+        long squared = (long)level * level;
+        return squared * squared;
     }
 }
