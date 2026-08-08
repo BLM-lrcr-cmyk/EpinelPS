@@ -4,8 +4,11 @@ namespace EpinelPS.Utils;
 
 public class EquipmentUtils
 {
-    private const double OffensiveEffectGroupWeightMultiplier = 25.0;
-    private const double OffensiveOptionValueWeightMultiplier = 6.0;
+    private const double OffensiveEffectGroupWeightMultiplier = 1000.0;
+    private const double NonOffensiveEffectGroupWeightMultiplier = 0.05;
+    private const double OffensiveOptionValueWeightMultiplier = 100.0;
+    private const double OffensiveMaxRollChance = 0.98;
+    private const double GeneralMaxRollChance = 0.85;
 
     private static readonly string[] OffensiveOptionKeywords =
     [
@@ -62,7 +65,7 @@ public class EquipmentUtils
     {
         return IsOffensiveOption(option)
             ? baseWeight * OffensiveEffectGroupWeightMultiplier
-            : baseWeight;
+            : baseWeight * NonOffensiveEffectGroupWeightMultiplier;
     }
 
     public static long GetWeightedOptionRatio(EquipmentOptionRecord option)
@@ -83,10 +86,15 @@ public class EquipmentUtils
             throw new InvalidOperationException($"StateEffectList is null or empty for option {option.Id}");
         }
 
-        if (!IsOffensiveOption(option))
+        bool isOffensive = IsOffensiveOption(option);
+        double maxRollChance = isOffensive ? OffensiveMaxRollChance : GeneralMaxRollChance;
+
+        if (random.NextDouble() < maxRollChance)
         {
-            int randomIndex = random.Next(option.StateEffectList.Count);
-            return option.StateEffectList[randomIndex].StateEffectId;
+            return option.StateEffectList
+                .OrderByDescending(x => x.StateEffectLevel)
+                .First()
+                .StateEffectId;
         }
 
         long totalWeight = option.StateEffectList.Sum(x => GetStateEffectLevelWeight(x));

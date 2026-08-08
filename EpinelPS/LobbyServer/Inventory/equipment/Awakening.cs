@@ -123,8 +123,8 @@ public class AwakeningEquipment : LobbyMessage
     {
         List<int> excludedStateEffectIds = new();
 
-        // 1.0 = 100% chance for slot 1, 0.5 = 50% chance for slot 2, 0.3 = 30% chance for slot 3
-        double[] slotActivationProbabilities = { 1.0, 0.5, 0.3 };
+        // Personal fork tuning: always enable all three overload option slots.
+        double[] slotActivationProbabilities = { 1.0, 1.0, 1.0 };
 
         for (int i = 1; i <= 3; i++)
         {
