@@ -28,7 +28,7 @@ This fork currently focuses on stability and quality-of-life tweaks:
 - If `db.json` is empty or unreadable, the server tries to recover from `db.json.bak`.
 
 > [!IMPORTANT]
-> The `1400` cap matches the currently available client static level data. Going beyond it without changing game resources can make the client hang during loading.
+> The `1400` cap matches the currently available client static level data. Levels above `1400` do not have matching client level/stat records, so the client can hang on loading screens or when opening character/synchro pages. This fork does not modify game resources, so the server clamps levels to `1400`.
 
 ## Official source and downloads
 
@@ -74,7 +74,7 @@ The first created account becomes the admin account.
 
 The server automatically searches the corresponding `Unity/.../saus/saus/lss` directory. Without this path, IDs can still work, but localized names may not resolve.
 
-For this fork, avoid manually setting character or synchro levels above `1400`. The server will clamp them back down because higher values are not supported by the current client static data.
+For this fork, levels above `1400` are treated as unsafe. The current client does not include level/stat records for `1401+`, so values such as `4500` or `9999` can make the client hang during loading. On startup or database reload, the server clamps those values back to `1400`.
 
 ## What is implemented or missing?
 
